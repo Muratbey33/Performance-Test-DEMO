@@ -17,12 +17,16 @@ jobs:
       - name: Verify JMX exists
         run: |
           ls -la
-          test -f Stratus-Performance-Testing.jmx
+          test -f jpetstore.jmx
 
-      - name: Perfection for Meter
-        uses: QAInsights/PerfAction@2.0
-        with:
-          test-plan-path: "Stratus-Performance-Testing.jmx"
+      - name: Run JMeter Test
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/tests \
+            justb4/jmeter:5.6 \
+            -n \
+            -t /tests/jpetstore.jmx \
+            -l /tests/result.jtl
 
       - name: Upload Results
         if: always()
