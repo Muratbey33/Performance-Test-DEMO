@@ -1,8 +1,9 @@
-name: CI with Report
+name: CI with JMeter HTML Report
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,40 +13,70 @@ permissions:
 
 jobs:
   build:
+    name: Run JMeter and Generate Report
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # ---------------------------------------------------
+      # 1. Checkout repository
+      # ---------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      # ---------------------------------------------------
+      # 2. Run JMeter test inside Docker
+      # ---------------------------------------------------
       - name: Run JMeter Test
         run: |
+          echo "Running JMeter test..."
           docker run --rm \
             -v ${{ github.workspace }}:/tests \
             justb4/jmeter:latest \
             -n \
-            -t /tests/jpetstore.jmx \
-            -l /tests/result.jtl \
+            -t /tests/Stratus-Performance-Testing.jmx \
+            -l /tests/results.jtl \
             -e \
             -o /tests/report
 
-      - name: Ensure report directory exists
+      # ---------------------------------------------------
+      # 3. Verify report structure
+      # ---------------------------------------------------
+      - name: Verify JMeter HTML report
         run: |
-          mkdir -p report
+          echo "Checking report directory..."
           ls -la report
+          echo "Checking index.html..."
+          ls -la report/index.html
 
+      # ---------------------------------------------------
+      # 4. Debug (optional but useful)
+      # ---------------------------------------------------
+      - name: Debug report structure
+        run: |
+          echo "Full report tree:"
+          find report -maxdepth 2 -type f
+
+      # ---------------------------------------------------
+      # 5. Upload report for GitHub Pages
+      # ---------------------------------------------------
       - name: Upload HTML report as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: report
 
   deploy:
+    name: Deploy Report to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # ---------------------------------------------------
+      # 6. Deploy to GitHub Pages
+      # ---------------------------------------------------
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
