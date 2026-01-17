@@ -28,7 +28,12 @@ jobs:
             -e \
             -o /tests/report
 
-      - name: Upload HTML report as artifact
+      - name: Ensure report directory exists
+        run: |
+          mkdir -p report
+          ls -la report
+
+      - name: Upload HTML report as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: report
