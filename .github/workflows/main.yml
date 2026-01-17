@@ -16,16 +16,14 @@ jobs:
 
       - name: Verify JMX exists
         run: |
-          echo "Listing repo files:"
           ls -la
-          echo "Checking jpetstore.jmx"
           test -f jpetstore.jmx
 
       - name: Run JMeter Test
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/tests \
-            justb4/jmeter:5.6 \
+            justb4/jmeter:latest \
             -n \
             -t /tests/jpetstore.jmx \
             -l /tests/result.jtl
