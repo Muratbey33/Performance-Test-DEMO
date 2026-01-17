@@ -1,11 +1,14 @@
-name: CI
+name: CI with Report
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -14,11 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify JMX exists
-        run: |
-          ls -la
-          test -f jpetstore.jmx
-
       - name: Run JMeter Test
         run: |
           docker run --rm \
@@ -26,11 +24,23 @@ jobs:
             justb4/jmeter:latest \
             -n \
             -t /tests/jpetstore.jmx \
-            -l /tests/result.jtl
+            -l /tests/result.jtl \
+            -e \
+            -o /tests/report
 
-      - name: Upload Results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload HTML report as artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: jmeter-results
-          path: result.jtl
+          path: report
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
