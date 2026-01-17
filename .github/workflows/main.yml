@@ -16,7 +16,9 @@ jobs:
 
       - name: Verify JMX exists
         run: |
+          echo "Listing repo files:"
           ls -la
+          echo "Checking jpetstore.jmx"
           test -f jpetstore.jmx
 
       - name: Run JMeter Test
